@@ -35,12 +35,12 @@ jobs:
 
     - name: Deploy to server
       run: |
-        rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" ./ \
+        rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key ./ \
         ${{ secrets.SERVER_USER}}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
 
     - name: Run server commands
       run: |
-        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SERVER_USER}}@${{ secrets.SERVER_HOST }} << 'EOF'
+        ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER}}@${{ secrets.SERVER_HOST }} << 'EOF'
         cd /var/www/html/cicd-app
         composer install --no-dev --optimize-autoloader
         php artisan migrate --force
