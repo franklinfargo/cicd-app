@@ -42,7 +42,7 @@ jobs:
 
     - name: Deploy to server
       run: |
-        rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key" ./ \
+        rsync -avz --delete --no-perms --chmod=ugo=rwX -e "ssh -i ~/.ssh/deploy_key" ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
         ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
 
     - name: Run server commands
