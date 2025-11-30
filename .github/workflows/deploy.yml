@@ -1,0 +1,53 @@
+name: Deploy Laravel to Ubuntu Server
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, mysql, xml, zip, curl, gd
+
+    - name: Install Composer dependencies
+      run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+    - name: Copy environment file
+      run: cp .env.example .env
+
+    - name: Generate Laravel app key
+      run: php artisan key:generate
+
+    - name: Prepare SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+
+    - name: Deploy to server
+      run: |
+        rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" ./ \
+        ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/cicd-app
+
+    - name: Run server commands
+      run: |
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+        cd /var/www/html/cicd-app
+        composer install --no-dev --optimize-autoloader
+        php artisan migrate --force
+        php artisan config:clear
+        php artisan cache:clear
+        php artisan route:clear
+        php artisan config:cache
+        sudo chown -R www-data:www-data /var/www/html/cicd-app
+        sudo chmod -R 775 storage bootstrap/cache
+        EOF
