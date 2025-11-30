@@ -30,17 +30,17 @@ jobs:
     - name: Prepare SSH Key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
 
     - name: Deploy to server
       run: |
         rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" ./ \
-        ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/cicd-app
+        ${{ secrets.SERVER_USER}}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
 
     - name: Run server commands
       run: |
-        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+        ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} ${{ secrets.SERVER_USER}}@${{ secrets.SERVER_HOST }} << 'EOF'
         cd /var/www/html/cicd-app
         composer install --no-dev --optimize-autoloader
         php artisan migrate --force
