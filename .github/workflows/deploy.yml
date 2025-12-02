@@ -67,7 +67,7 @@ jobs:
         php artisan cache:clear
         php artisan route:clear
         php artisan config:cache
-        sudo chown -R www-data:www-data /var/www/html/cicd-app
+        sudo chown -R ubuntu:ubuntu /var/www/html/cicd-app
         sudo chmod -R 775 storage bootstrap/cache
         sudo chmod -R 775 vendor
         EOF
