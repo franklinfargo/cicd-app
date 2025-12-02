@@ -18,6 +18,25 @@ jobs:
         php-version: '8.2'
         extensions: mbstring, mysql, xml, zip, curl, gd, sqlite, bcmath, intl, soap, readline, opcache
 
+    - name: Copy files to server
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /var/www/html/your-app
+
+          cat > .env <<EOL
+          DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_DATABASE=${{ secrets.DB_DATABASE }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          EOL          
+
+
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
