@@ -25,6 +25,15 @@ jobs:
         chmod 600 ~/.ssh/deploy_key
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
+    - name: Ensure remote folder exists and permissions
+      run: |
+        ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          mkdir -p /var/www/html/cicd-app
+          sudo chown -R ${{ secrets.SERVER_USER }}:www-data /var/www/html/cicd-app
+          sudo find /var/www/html/cicd-app -type d -exec chmod 775 {} \;
+          sudo find /var/www/html/cicd-app -type f -exec chmod 664 {} \;
+        EOF
+        
     - name: Deploy to server
       run: |
         rsync -avz --delete --no-perms --chmod=ugo=rwX -e "ssh -i ~/.ssh/deploy_key" ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
