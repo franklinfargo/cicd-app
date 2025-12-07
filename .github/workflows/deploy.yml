@@ -31,12 +31,13 @@ jobs:
         mkdir -p /var/www/html/cicd-app
         EOF
 
-    - name: Ensure remote folder exists
+    - name: Prepare remote directory for rsync
       run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-          sudo mkdir -p /var/www/html/cicd-app
-          sudo chmod -R 777 /var/www/html/cicd-app
-          EOF
+        ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+        sudo mkdir -p /var/www/html/cicd-app
+        sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /var/www/html/cicd-app
+        sudo chmod -R 775 /var/www/html/cicd-app
+        EOF
 
     - name: Deploy application using rsync
       run: |
