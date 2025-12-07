@@ -31,6 +31,13 @@ jobs:
         mkdir -p /var/www/html/cicd-app
         EOF
 
+    - name: Ensure remote folder exists
+      run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          sudo mkdir -p /var/www/html/cicd-app
+          sudo chmod -R 777 /var/www/html/cicd-app
+          EOF
+
     - name: Deploy application using rsync
       run: |
         rsync -avz --delete \
