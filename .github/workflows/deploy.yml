@@ -62,12 +62,13 @@ jobs:
         ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
         cd /var/www/html/cicd-app
         composer install --no-dev --optimize-autoloader
-        php artisan migrate --force
-        php artisan config:clear
+        
         php artisan cache:clear
+        php artisan config:clear
         php artisan route:clear
+        php artisan view:clear
         php artisan config:cache
-        sudo chown -R ubuntu:ubuntu /var/www/html/cicd-app
-        sudo chmod -R 775 storage bootstrap/cache
-        sudo chmod -R 775 vendor
+        sudo chown -R www-data:www-data /var/www/html/cicd-app
+        sudo chmod -R 775 /var/www/html/cicd-app/storage
+        sudo chmod -R 775 /var/www/html/cicd-app/bootstrap/cache
         EOF
