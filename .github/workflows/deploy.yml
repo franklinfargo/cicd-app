@@ -84,6 +84,9 @@ jobs:
         # Optional: Run migrations if needed
         # php artisan migrate --force
 
+        # Ensure log file exists
+        sudo -u www-data touch storage/logs/laravel.log
+
         # Clear & rebuild Laravel caches as www-data
         sudo -u www-data php artisan cache:clear
         sudo -u www-data php artisan config:clear
