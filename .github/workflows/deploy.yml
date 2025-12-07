@@ -55,10 +55,10 @@ jobs:
         cd /var/www/html/cicd-app
 
         cat > .env <<EOL
-        # APP_NAME="Laravel CICD"
-        # APP_ENV=production
-        # APP_DEBUG=false
-        # APP_URL=${{ secrets.APP_URL }}
+        APP_NAME="Laravel CICD"
+        APP_ENV=production
+        APP_DEBUG=false
+        APP_URL="https://uat.landmarkbic.com/cicd-app/"
 
         # DB_CONNECTION=${{ secrets.DB_CONNECTION }}
         # DB_HOST=${{ secrets.DB_HOST }}
@@ -68,7 +68,7 @@ jobs:
         # DB_PASSWORD=${{ secrets.DB_PASSWORD }}
         # EOL
 
-        # php artisan key:generate --force
+        php artisan key:generate --force
         EOF
 
     # 7️⃣ Build project & fix permissions
