@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
     - name: Checkout code
       uses: actions/checkout@v3
 
@@ -16,26 +17,6 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
-        extensions: mbstring, mysql, xml, zip, curl, gd, sqlite, bcmath, intl, soap, readline, opcache
-
-    - name: Copy files to server
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd /var/www/html/your-app
-
-          cat > .env <<EOL
-          DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-          DB_HOST=${{ secrets.DB_HOST }}
-          DB_PORT=${{ secrets.DB_PORT }}
-          DB_DATABASE=${{ secrets.DB_DATABASE }}
-          DB_USERNAME=${{ secrets.DB_USERNAME }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          EOL          
-
 
     - name: Setup SSH
       run: |
@@ -44,31 +25,62 @@ jobs:
         chmod 600 ~/.ssh/deploy_key
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Ensure remote folder exists and permissions
+    - name: Ensure remote folder exists
       run: |
         ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-          mkdir -p /var/www/html/cicd-app
-          sudo chown -R ${{ secrets.SERVER_USER }}:www-data /var/www/html/cicd-app
-          sudo find /var/www/html/cicd-app -type d -exec chmod 775 {} \;
-          sudo find /var/www/html/cicd-app -type f -exec chmod 664 {} \;
+        mkdir -p /var/www/html/cicd-app
         EOF
-        
-    - name: Deploy to server
-      run: |
-        rsync -avz --delete --no-perms --chmod=ugo=rwX -e "ssh -i ~/.ssh/deploy_key" ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
 
-    - name: Run server commands
+    - name: Deploy application using rsync
+      run: |
+        rsync -avz --delete \
+        --exclude '.git' \
+        --exclude 'storage' \
+        --exclude '.env' \
+        -e "ssh -i ~/.ssh/deploy_key" ./ \
+        ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
+
+    - name: Configure environment file
       run: |
         ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
         cd /var/www/html/cicd-app
-        composer install --no-dev --optimize-autoloader
-        
+
+        cat > .env <<EOL
+        APP_NAME="Laravel CICD"
+        APP_ENV=production
+        APP_DEBUG=false
+        APP_URL=${{ secrets.APP_URL }}
+
+        DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+        DB_HOST=${{ secrets.DB_HOST }}
+        DB_PORT=${{ secrets.DB_PORT }}
+        DB_DATABASE=${{ secrets.DB_DATABASE }}
+        DB_USERNAME=${{ secrets.DB_USERNAME }}
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        EOL
+
+        php artisan key:generate --force
+        EOF
+
+    - name: Run server build commands
+      run: |
+        ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+        cd /var/www/html/cicd-app
+
+        composer install --no-dev --optimize-autoloader --prefer-dist
+
+        php artisan migrate --force
+
         php artisan cache:clear
         php artisan config:clear
         php artisan route:clear
         php artisan view:clear
         php artisan config:cache
+
+        # Set ownership
         sudo chown -R www-data:www-data /var/www/html/cicd-app
+
+        # Fix writable directory permissions
         sudo chmod -R 775 /var/www/html/cicd-app/storage
         sudo chmod -R 775 /var/www/html/cicd-app/bootstrap/cache
         EOF
