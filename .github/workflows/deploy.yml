@@ -10,14 +10,17 @@ jobs:
 
     steps:
 
+    # 1️⃣ Checkout code
     - name: Checkout code
       uses: actions/checkout@v3
 
+    # 2️⃣ Setup PHP
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
 
+    # 3️⃣ Setup SSH
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
@@ -25,13 +28,8 @@ jobs:
         chmod 600 ~/.ssh/deploy_key
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Ensure remote folder exists
-      run: |
-        ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-        mkdir -p /var/www/html/cicd-app
-        EOF
-
-    - name: Prepare remote directory for rsync
+    # 4️⃣ Prepare remote directory for rsync
+    - name: Prepare remote directory
       run: |
         ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
         sudo mkdir -p /var/www/html/cicd-app
@@ -39,56 +37,64 @@ jobs:
         sudo chmod -R 775 /var/www/html/cicd-app
         EOF
 
+    # 5️⃣ Deploy application using rsync
     - name: Deploy application using rsync
       run: |
         rsync -avz --delete \
         --exclude '.git' \
         --exclude 'storage' \
         --exclude '.env' \
+        --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
         -e "ssh -i ~/.ssh/deploy_key" ./ \
         ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
 
-    # - name: Configure environment file
-    #   run: |
-    #     ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-    #     cd /var/www/html/cicd-app
-
-    #     cat > .env <<EOL
-    #     APP_NAME="Laravel CICD"
-    #     APP_ENV=production
-    #     APP_DEBUG=false
-    #     APP_URL=${{ secrets.APP_URL }}
-
-    #     DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-    #     DB_HOST=${{ secrets.DB_HOST }}
-    #     DB_PORT=${{ secrets.DB_PORT }}
-    #     DB_DATABASE=${{ secrets.DB_DATABASE }}
-    #     DB_USERNAME=${{ secrets.DB_USERNAME }}
-    #     DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-    #     EOL
-
-    #     php artisan key:generate --force
-    #     EOF
-
-    - name: Run server build commands
+    # 6️⃣ Configure environment file
+    - name: Configure environment file
       run: |
         ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
         cd /var/www/html/cicd-app
 
+        cat > .env <<EOL
+        # APP_NAME="Laravel CICD"
+        # APP_ENV=production
+        # APP_DEBUG=false
+        # APP_URL=${{ secrets.APP_URL }}
+
+        # DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+        # DB_HOST=${{ secrets.DB_HOST }}
+        # DB_PORT=${{ secrets.DB_PORT }}
+        # DB_DATABASE=${{ secrets.DB_DATABASE }}
+        # DB_USERNAME=${{ secrets.DB_USERNAME }}
+        # DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        # EOL
+
+        # php artisan key:generate --force
+        EOF
+
+    # 7️⃣ Build project & fix permissions
+    - name: Build & fix Laravel permissions
+      run: |
+        ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+        cd /var/www/html/cicd-app
+
+        # Install composer dependencies
         composer install --no-dev --optimize-autoloader --prefer-dist
 
-        php artisan migrate --force
+        # Optional: Run migrations if needed
+        # php artisan migrate --force
 
-        php artisan cache:clear
-        php artisan config:clear
-        php artisan route:clear
-        php artisan view:clear
-        php artisan config:cache
+        # Clear & rebuild Laravel caches as www-data
+        sudo -u www-data php artisan cache:clear
+        sudo -u www-data php artisan config:clear
+        sudo -u www-data php artisan route:clear
+        sudo -u www-data php artisan view:clear
+        sudo -u www-data php artisan config:cache
 
-        # Set ownership
+        # Set correct ownership & permissions for Laravel runtime
+        sudo chown -R www-data:www-data storage bootstrap/cache
+        sudo chmod -R 775 storage bootstrap/cache
+
+        # Ensure web server can read all files
         sudo chown -R www-data:www-data /var/www/html/cicd-app
-
-        # Fix writable directory permissions
-        sudo chmod -R 775 /var/www/html/cicd-app/storage
-        sudo chmod -R 775 /var/www/html/cicd-app/bootstrap/cache
+        sudo chmod -R 755 /var/www/html/cicd-app
         EOF
