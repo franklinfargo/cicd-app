@@ -69,6 +69,10 @@ jobs:
         # DB_PASSWORD=${{ secrets.DB_PASSWORD }}
         # EOL
 
+        # Ensure deploy user can write .env temporarily
+        sudo chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} .env
+        sudo chmod 664 .env
+
         # php artisan key:generate --force
         EOF
 
@@ -80,9 +84,6 @@ jobs:
 
         # Install composer dependencies
         composer install --no-dev --optimize-autoloader --prefer-dist
-
-        # Optional: Run migrations if needed
-        # php artisan migrate --force
 
         # Ensure log file exists
         sudo -u www-data touch storage/logs/laravel.log
@@ -96,7 +97,7 @@ jobs:
 
         # Set correct ownership & permissions for Laravel runtime
         sudo chown -R www-data:www-data storage bootstrap/cache
-        sudo chmod -R 775 storage bootstrap/cache
+        sudo chmod -R 777 storage bootstrap/cache
 
         # Ensure web server can read all files
         sudo chown -R www-data:www-data /var/www/html/cicd-app
