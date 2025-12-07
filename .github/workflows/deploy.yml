@@ -59,6 +59,7 @@ jobs:
         APP_ENV=production
         APP_DEBUG=true
         APP_URL="https://uat.landmarkbic.com/cicd-app/"
+        APP_KEY=
 
         # DB_CONNECTION=${{ secrets.DB_CONNECTION }}
         # DB_HOST=${{ secrets.DB_HOST }}
