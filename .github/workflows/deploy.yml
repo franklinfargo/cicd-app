@@ -48,27 +48,27 @@ jobs:
         -e "ssh -i ~/.ssh/deploy_key" ./ \
         ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
 
-    - name: Configure environment file
-      run: |
-        ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-        cd /var/www/html/cicd-app
+    # - name: Configure environment file
+    #   run: |
+    #     ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+    #     cd /var/www/html/cicd-app
 
-        cat > .env <<EOL
-        APP_NAME="Laravel CICD"
-        APP_ENV=production
-        APP_DEBUG=false
-        APP_URL=${{ secrets.APP_URL }}
+    #     cat > .env <<EOL
+    #     APP_NAME="Laravel CICD"
+    #     APP_ENV=production
+    #     APP_DEBUG=false
+    #     APP_URL=${{ secrets.APP_URL }}
 
-        DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-        DB_HOST=${{ secrets.DB_HOST }}
-        DB_PORT=${{ secrets.DB_PORT }}
-        DB_DATABASE=${{ secrets.DB_DATABASE }}
-        DB_USERNAME=${{ secrets.DB_USERNAME }}
-        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-        EOL
+    #     DB_CONNECTION=${{ secrets.DB_CONNECTION }}
+    #     DB_HOST=${{ secrets.DB_HOST }}
+    #     DB_PORT=${{ secrets.DB_PORT }}
+    #     DB_DATABASE=${{ secrets.DB_DATABASE }}
+    #     DB_USERNAME=${{ secrets.DB_USERNAME }}
+    #     DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+    #     EOL
 
-        php artisan key:generate --force
-        EOF
+    #     php artisan key:generate --force
+    #     EOF
 
     - name: Run server build commands
       run: |
