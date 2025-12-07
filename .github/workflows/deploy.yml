@@ -74,6 +74,9 @@ jobs:
         sudo chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} .env
         sudo chmod 664 .env
 
+        # Install Composer dependencies (if not already installed)
+        composer install --no-dev --optimize-autoloader --prefer-dist
+
         # Generate application key
         php artisan key:generate --force
         EOF
@@ -85,7 +88,7 @@ jobs:
         cd /var/www/html/cicd-app
 
         # Install composer dependencies
-        composer install --no-dev --optimize-autoloader --prefer-dist
+        # composer install --no-dev --optimize-autoloader --prefer-dist
 
         # Ensure log file exists
         sudo -u www-data touch storage/logs/laravel.log
