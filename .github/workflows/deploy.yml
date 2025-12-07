@@ -57,7 +57,7 @@ jobs:
         cat > .env <<EOL
         APP_NAME="Laravel CICD"
         APP_ENV=production
-        APP_DEBUG=false
+        APP_DEBUG=true
         APP_URL="https://uat.landmarkbic.com/cicd-app/"
 
         # DB_CONNECTION=${{ secrets.DB_CONNECTION }}
@@ -68,7 +68,7 @@ jobs:
         # DB_PASSWORD=${{ secrets.DB_PASSWORD }}
         # EOL
 
-        php artisan key:generate --force
+        # php artisan key:generate --force
         EOF
 
     # 7️⃣ Build project & fix permissions
