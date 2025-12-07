@@ -54,26 +54,19 @@ jobs:
         ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
         cd /var/www/html/cicd-app
 
-        cat > .env <<EOL
+        cat >.env<<EOL
         APP_NAME="Laravel CICD"
         APP_ENV=production
         APP_DEBUG=true
         APP_URL="https://uat.landmarkbic.com/cicd-app/"
         APP_KEY=
-
-        # DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-        # DB_HOST=${{ secrets.DB_HOST }}
-        # DB_PORT=${{ secrets.DB_PORT }}
-        # DB_DATABASE=${{ secrets.DB_DATABASE }}
-        # DB_USERNAME=${{ secrets.DB_USERNAME }}
-        # DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-        # EOL
+        EOL
 
         # Ensure deploy user can write .env temporarily
         sudo chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} .env
         sudo chmod 664 .env
 
-        # php artisan key:generate --force
+        php artisan key:generate --force
         EOF
 
     # 7️⃣ Build project & fix permissions
