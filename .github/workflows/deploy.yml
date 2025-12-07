@@ -62,12 +62,17 @@ jobs:
         APP_URL="https://uat.landmarkbic.com/cicd-app/"
         APP_KEY=
 
-        # DB_CONNECTION=${{ secrets.DB_CONNECTION }}
-        # DB_HOST=${{ secrets.DB_HOST }}
-        # DB_PORT=${{ secrets.DB_PORT }}
-        # DB_DATABASE=${{ secrets.DB_DATABASE }}
-        # DB_USERNAME=${{ secrets.DB_USERNAME }}
-        # DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        SESSION_DRIVER=file
+        CACHE_DRIVER=file
+        QUEUE_CONNECTION=sync
+
+        # Dummy DB settings (not used)
+        DB_CONNECTION=mysql
+        DB_HOST=127.0.0.1
+        DB_PORT=3306
+        DB_DATABASE=none
+        DB_USERNAME=none
+        DB_PASSWORD=none
         EOL
 
         # Ensure deploy user can write .env temporarily
