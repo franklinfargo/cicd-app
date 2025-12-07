@@ -108,6 +108,7 @@ jobs:
         # Set correct ownership & permissions for Laravel runtime
         sudo chown -R www-data:www-data storage bootstrap/cache
         sudo chmod -R 777 storage bootstrap/cache
+        sudo chmod -R 777 storage/logs/laravel.log
 
         # Ensure web server can read all files
         sudo chown -R www-data:www-data /var/www/html/cicd-app
