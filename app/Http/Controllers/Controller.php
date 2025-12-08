@@ -4,6 +4,6 @@ namespace App\Http\Controllers;
 
 abstract class Controller
 {
-    //test 
+    //test  CI-CD app
     // Franklin
 }
