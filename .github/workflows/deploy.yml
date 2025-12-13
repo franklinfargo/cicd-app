@@ -57,10 +57,9 @@ jobs:
 
         # Create .env file with empty APP_KEY
         cat > .env <<EOL
-        APP_NAME="Laravel CICD"
+        APP_NAME="Laravel CICD Test"
         APP_ENV=production
         APP_DEBUG=true
-        
         APP_URL="https://uat.landmarkbic.com/cicd-app/"
         APP_KEY=
 
