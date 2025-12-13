@@ -60,6 +60,7 @@ jobs:
         APP_NAME="Laravel CICD"
         APP_ENV=production
         APP_DEBUG=true
+        
         APP_URL="https://uat.landmarkbic.com/cicd-app/"
         APP_KEY=
 
