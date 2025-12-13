@@ -44,7 +44,7 @@ jobs:
         --exclude '.git' \
         --exclude 'storage/*' \
         --exclude 'bootstrap/cache/*' \
-        exclude '.env' \
+        --exclude '.env' \
         --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
         -e "ssh -i ~/.ssh/deploy_key" ./ \
         ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/html/cicd-app
